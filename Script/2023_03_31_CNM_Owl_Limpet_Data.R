@@ -17,7 +17,7 @@ cnm_limp_dens <- read_csv(here("Data","2023_03_2023_CNM_Limpet_density_and_size_
 cnm_hist_size <- cnm_limp_dens %>%
   ggplot( aes
           (x=SL)) +
-  geom_histogram( binwidth=3, fill="#69b3a2", color="#e9ecef", alpha=0.9) +
+  geom_histogram( stat = "count", binwidth=3, fill="#69b3a2", color="#e9ecef", alpha=0.9) +
   ggtitle("Bin size = 3") +
   theme_ipsum() +
   theme(
