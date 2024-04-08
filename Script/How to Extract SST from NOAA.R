@@ -7,6 +7,7 @@ library(lubridate)
 library(patchwork)
 library(viridis)
 library(here)
+library(kableExtra)
 
 ####This tells R to use NOAA designated website and what data set to use#####
 rerddap::info(datasetid = "ncdcOisst21Agg_LonPM180", url = "https://coastwatch.pfeg.noaa.gov/erddap/")
@@ -43,26 +44,29 @@ ggplot(sci_temp_data, aes(x = time, y = sst))+
 
 ###make a box plot#####
 s <- sci_temp_data %>%
-  ggplot(aes(x = as.factor(year), y = sst, color = season))+
+  ggplot(aes(x = as.factor(year), y = sst, fill = season))+
   geom_boxplot()+
   labs(title = "Santa Cruz Island",
-       color = "Season",
+       fill = "Season",
        x = "Year",
        y = "Sea Surface Temperature (C)")+
-  theme(plot.title = element_text(size = 6),
-        axis.title.y = element_text(size = 5),
-        axis.title.x = element_text(size = 5),
-        axis.text.x = element_text(size = 3),
-        axis.text.y = element_text(size = 3))+
-  scale_fill_viridis(option = "C")
+  theme(plot.title = element_text(size = 8),
+        axis.title.y = element_text(size = 7),
+        axis.title.x = element_text(size = 7),
+        axis.text.x = element_text(size = 6),
+        axis.text.y = element_text(size = 6))+
+  scale_color_viridis_d(option = "D")
 
 s
 
 #######summarize data#####
 sci_temp_data %>%
-  group_by(year,season)%>%
-  summarise(temp.mean = mean(sst, na.rm = TRUE),
-            temp.max = max(sst, na.rm = TRUE))
+  group_by(year,season)%>% # group by year and season
+  summarise(temp.mean = mean(sst, na.rm = TRUE), # average of sst
+            temp.max = max(sst, na.rm = TRUE), # max sst
+            temp.min = min(ssr, na.rm = TRUE)) %>% # min sst
+  kbl(caption = "Temperature data at SCI")%>% #make a table
+  kable_styling(full_width = F, font_size = 9)
 
 
 
@@ -90,23 +94,24 @@ cnm_temp_data<-griddap(datasetx = "ncdcOisst21Agg_LonPM180", ##need to change na
          season = factor(season),
          season = fct_relevel(season, c("winter","spring","summer","fall")))
 
+####line graph####
 ggplot(cnm_temp_data, aes(x = time, y = sst))+
   geom_line()+
   geom_point(aes(color = season))
 
 ####boxplot#####
 c <- cnm_temp_data %>%
-  ggplot(aes(x = as.factor(year), y = sst, color = season))+
+  ggplot(aes(x = as.factor(year), y = sst, fill = season))+
   geom_boxplot()+
   labs(title = "Cabrillo National Monument",
-       color = "Season",
+       fill = "Season",
        x = "Year",
        y = "Sea Surface Temperature (C)")+
-  theme(plot.title = element_text(size = 6),
-        axis.title.y = element_text(size = 5),
-        axis.title.x = element_text(size = 5),
-        axis.text.x = element_text(size = 3),
-        axis.text.y = element_text(size = 3))
+  theme(plot.title = element_text(size = 8),
+        axis.title.y = element_text(size = 7),
+        axis.title.x = element_text(size = 7),
+        axis.text.x = element_text(size = 6),
+        axis.text.y = element_text(size = 6))
 
 c
 
@@ -114,6 +119,13 @@ cnm_temp_data %>%
   group_by(year,season)%>%
   summarise(temp.mean = mean(sst, na.rm = TRUE),
             temp.max = max(sst, na.rm = TRUE))
+
+cnm_temp_data %>%
+  group_by(year,season)%>% # group by year and season
+  summarise(temp.mean = mean(sst, na.rm = TRUE), # average of sst
+            temp.max = max(sst, na.rm = TRUE)) %>% # max sst
+  kbl(caption = "Temperature data at CNM")%>% #make a table
+  kable_styling(full_width = F, font_size = 9) #use this to change the font
 
 ####both boxplots####
 s/c+

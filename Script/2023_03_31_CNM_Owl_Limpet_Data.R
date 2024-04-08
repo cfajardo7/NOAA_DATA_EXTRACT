@@ -34,7 +34,7 @@ cnm_limp_dens %>%
         axis.title.x = element_text(size = 8),
         axis.text.x = element_text(size = 7),
         axis.text.y = element_text(size = 8))+
-  scale_x_discrete(guide = guide_axis(angle = 90))+
+  scale_x_discrete(guide = guide_axis(angle = 90))
   ggtitle("Owl Limpet Size Distribution at Cabrillo National Monument")+
   ggsave(here("Output", "OL_Size_Dist_2.jpg"))
 
