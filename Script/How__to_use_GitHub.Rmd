@@ -77,7 +77,9 @@ For [MaciOS](https://git-scm.com/download/mac)
 --
 
 - Name the repo, it can be test
+
 - Provide a description in the "Description" field
+
 - Click "Add a README file
 ![New](libs/Images/Name_it.png)
 
@@ -117,8 +119,7 @@ On the top right corner there's a pull down menu. Click on it and select "New Pr
 
 # Now create a version controlled project
 - In the repository URL field, paste the url that you copied from GitHub
-- Select where on your computer it will live
-  - I have a folder on my desktop where I keep all of m repos
+- Select where on your computer it will live (I have a repo folder)
 - Click create project
 ![New](libs/Images/Create_project.png)
 
@@ -160,7 +161,7 @@ Commit - This saves your changes with git. You have to type this with a message 
 Push - This uploads all of your changes to GitHub
 
 
-### Now you can use GitHub to upload all of your work! Yiu can work on your data from anywhere that that has access to R and GitHub (in worst case scenerios, if you loose things, yikes)
+### Now you can use GitHub to upload all of your work! You can work on your data from anywhere that that has access to R and GitHub (in worst case scenerios, if you loose things, yikes)
 You can also work directly on GitHub, like adding a RMD file that contains your protocols. But to do that, you need to speak RMarkdown language.
 
 ---
@@ -207,7 +208,7 @@ But in the output, you can change the theme to make it look pretty! Here is a [l
 
 # Chunks
 
-As you scroll through the document, you will see areas with grayed out space that have this configuration ```{r, } . Those are the "chunks" where code goes. The white space is there for you to write anything you would like, but in RMarkdown language. The very first one is the set up chunk. What goes in here sets up the entire document. The keyboard command to make a chunk is I **ctrl+alt+I** like to use the following:
+As you scroll through the document, you will see areas with grayed out space that have this configuration ```{r, } . Those are the "chunks" where code goes. The white space is there for you to write anything you would like, but in RMarkdown language. The very first one is the set up chunk. What goes in here sets up the entire document. The keyboard command to make a chunk is  **ctrl+alt+I** or **Cmd + Option + I** (MAC users). I like to use the following:
 
 {r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,
@@ -237,7 +238,7 @@ library("doParallel")
 library(lubridate)
 library(patchwork)
 library(viridis)
-library(here)
+library(here) #THIS IS IMPORTANT WHEN READING CSV's
 library(kableExtra)
 library(dplyr)
 library(ggplot2)
@@ -276,6 +277,7 @@ On your R console, there is a button that says "Knit" with a ball of yarn. If yo
 
 ---
 # Here are some helpful links!
+[Learn to write with RMarkdown](https://www.markdowntutorial.com/)
 
 [Writing documents with RMarkdown](https://monashbioinformaticsplatform.github.io/2017-11-16-open-science-training/topics/rmarkdown.html)
 
