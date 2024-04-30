@@ -1,0 +1,168 @@
+---
+title: "Data Update"
+author: "Cindy Fajardo"
+date: "`r Sys.Date()`"
+output: 
+  prettydoc::html_pretty:
+    theme: tactile
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      warning = FALSE,
+                      message = FALSE,
+                      fig.path = "../Output/")
+```
+
+## Introduction
+
+Welcome to my data update! Here I will cover how I am attempting to organize all of my data and code so that it is user friendly. I will also go over my actual code, beginning with the first code Nyssa helped me with that catapulted my research in seasonal thermal difference and their effect on owl limpets.
+
+## Let's Start At The Beginning
+
+In the beginning stages of my graduate career I wanted to learn more about:
+
+1. Owl limpet ecology 
+2. Seasonal temperature variability 
+
+There isn't much literature about owl limpet ecology. But the more I learned about them, it became obvious that these organism are an important player in rocky intertidal communities. At the same time, I became aware that ENSO is not following its natural oscillating cycle, which can cause variable weather patterns.
+
+When I pitched this idea to Nyssa, I was given the task to see if there really is a significant seasonal thermal variation in Santa Cruz Island and Cabrillo National Monument (I was proposing to work in both sites). With Nyssa's help, I was able to create code to extract temperature data from NOAA.
+
+## NOAA Temperature Data Extraction Journey
+Before I could write the code, I needed to find temperature data from NOAA first. After a deep dive into temperature data and NOAA along with other websites, I came across the [Environmental Research Division Data Access Program (ERDDAP)](https://coastwatch.pfeg.noaa.gov/erddap/index.html). The data collected through this program is collected on buoys, and satellites. It collects a variety of abiotic factors that anyone can use. I used the following code to extract sea surface temperature and aerial temperature for Santa Cruz Island and Cabrillo National Monument. I also manipulate the data in the same code to render a data frame that is easy to use. This is the code I used:
+```{r, Libraries, echo=FALSE}
+library("rerddap")
+library("tidyverse")
+library("tidync")
+library("doParallel")
+library(lubridate)
+library(patchwork)
+library(viridis)
+library(here)
+library(kableExtra)
+library(ggplot2)
+library(hrbrthemes)
+library(emmeans)
+library(agricolae)
+library(vegan)
+library(performance)
+library(broom)
+library(car)
+library(lme4)
+library(lmerTest)
+library(pscl)
+library(ggridges)
+library(devtools)
+library(pairwiseAdonis)
+```
+
+```{r, read in csv, echo=FALSE}
+feb_cnm_shell_length <- read_csv(here("Data","2024_02_CNM_OL_SL_Data.csv"))
+master_sl <- read_csv(here("Data","Master_CNM_OL_SL_Data.csv")) %>%
+mutate(sex=ifelse(SL_mm>= 50, "female", "male"))
+```
+
+```{r, NOAA erddap}
+####This tells R to use NOAA designated website and what data set to use#####
+rerddap::info(datasetid = "ncdcOisst21Agg_LonPM180", url = "https://coastwatch.pfeg.noaa.gov/erddap/")
+
+cnm_temp_data<-griddap(datasetx = "ncdcOisst21Agg_LonPM180", ##need to change name each time
+                   url = "https://coastwatch.pfeg.noaa.gov/erddap/", 
+                   time = c("2020-01-01", "2022-12-31"), 
+                   zlev = c(0,0), # this is the depth, it wants a range
+                   latitude =  c(32.67,32.67), #lat you need
+                   longitude = c(-117.24,-117.24), #long you need
+                   fields = "sst")$data %>% #what to look for in data
+  mutate(time = as.Date(stringr::str_remove(time, "T00:00:00Z"))) %>% #setting date and removing T00:00:00z
+  select(longitude, latitude, time, sst) %>% 
+  na.omit()%>%
+  mutate(month = month(time), # extract the month
+         year = year(time), #extract the year
+         site = "Cabrillo National Monument",
+         season  = case_when( # make a season
+           month %in% c(12,1,2) ~ "winter",
+           month %in% c(3,4,5) ~ "spring",
+           month %in% c(6,7,8) ~ "summer",
+           month %in% c(9,10,11) ~ "fall"
+         ),
+         season = factor(season),
+         season = fct_relevel(season, c("winter","spring","summer","fall")))
+```
+
+## Visualizng The Data
+Now that I have the data extracted from NOAA and as a dataframe so I can manipulate the data. I started with a simple line graph
+```{r, Simple line graph}
+#Simple line graph
+ggplot(cnm_temp_data, aes(x = time, y = sst))+
+  geom_line()+
+  geom_point(aes(color = season))
+```
+I then created boxplots to show differences in mean temperature by season
+```{r, boxplot}
+#boxplot#
+c <- cnm_temp_data %>%
+  ggplot(aes(x = as.factor(year), y = sst, fill = season))+
+  geom_boxplot()+
+  labs(title = "Cabrillo National Monument",
+       fill = "Season",
+       x = "Year",
+       y = "Sea Surface Temperature (C)")+
+  theme(plot.title = element_text(size = 8),
+        axis.title.y = element_text(size = 7),
+        axis.title.x = element_text(size = 7),
+        axis.text.x = element_text(size = 6),
+        axis.text.y = element_text(size = 6))
+
+c
+```
+I can also manipulate the date to make a table using the kbl function
+```{r, Temperature Table}
+cnm_temp_data %>%
+  group_by(year,season)%>% # group by year and season
+  summarise(temp.mean = mean(sst, na.rm = TRUE), # average of sst
+            temp.max = max(sst, na.rm = TRUE)) %>% # max sst
+  kbl(caption = "Temperature data at CNM")%>% #make a table
+  kable_styling(full_width = F, font_size = 9) #use this to change the font
+```
+
+## Fast Forward to Data Collection
+As I started my field data collection, I realized that I have a ton of csv files with shell length data and community surveys for sessile and mobile species. I had all of them on one repo names CSUN_Thesis. I realized my scripts were getting really long and sort of all over the place. So I decided to separate my code by topic. Now I have repo's for growth, grazing, and community composition. Check out my [github](https://github.com/cfajardo7?tab=repositories).
+
+It is still a work in progress. Navigate to the [L_gigantea_growth](https://github.com/cfajardo7/L_gigantea_growth) repo. All of my repos will look like this. As I continue with data collection, my repo will continue to grow and change.
+
+I decided to split up my scripts to "visualizations" and "analysis". 
+
+The visualizations scripts will only be that, a way to visualize raw data after collection. Here is a snip it of the code I use to visualize population size per season:
+```{r, viualization}
+m <- master_sl %>%
+  ggplot( aes(x=SL_mm)) +
+    geom_density(aes(fill = Season), alpha = 0.6)+
+  labs(title = "Population Density in Fall and Winter",
+       x = "Shell Length",
+       y = "Density")+
+    theme_ipsum()
+
+m
+```
+I try to visualize the data before running any stats. The graph above shows population density by shell length per season. Once I visualize the data, I then run statistics on it. 
+The chunk below is a Mann-Whitney test on the shell lenth data by season
+```{r, ttest of SL winter and Fall}
+by_season <- master_sl %>%
+  select(Season, SL_mm) %>% 
+  group_by(Season) %>% 
+  mutate(sqrt_sl = sqrt(SL_mm))
+
+qqPlot(by_season$sqrt_sl)
+
+season_ttest <- t.test(log(SL_mm)~Season, data = by_season)
+season_ttest
+
+season_wilcoxtest <- wilcox.test(SL_mm~Season, data = by_season, paired=FALSE)
+season_wilcoxtest
+
+```
+The stats show that there is no significant difference in population means. I ran this test instead of a student's ttest since my data did not meet the assumptions of a ttest. 
+
+I hope you enjoyed my data update. Stay tuned for more!
